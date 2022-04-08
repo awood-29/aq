@@ -2,7 +2,7 @@
 # Regular Plot Subscript
 # Creator: Andrew Wood
 # Date Created: 3/25/22
-# Last Modified: 3/29/22
+# Last Modified: 4/7/22
 
 # input: relative path to directory
 
@@ -25,9 +25,10 @@ do
     gmt begin $name png
     gmt grdimage @earth_relief_01m $r $pro -B -C$bm # prints out basemap 
         gmt makecpt -A0 -Cpolar -Ic -T-8/8 # starts new cpt for lwe color
+        gmt basemap $r $pro -B30 -Ba30 -BWSNE
         gmt grdimage $1$line?lwe_thickness $r $pro -Q -t30
-        gmt colorbar -DJBC+e $r $pro -Baf 
-        gmt pscoast $r $pro -B -W
+        #gmt pscoast $r $pro -W
+        gmt colorbar -DJBC+e $r $pro -Bpxa2Rf1d5 -Bya+lcm
     gmt end 
 done <<< $fns #reads line by line from list of files
 

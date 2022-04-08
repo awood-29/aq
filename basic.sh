@@ -14,7 +14,7 @@
 ## Function Definitions ##
 
 Plotn() {
-pro="-Js0/-90/12c/1" 
+pro="-Js0/-90/20c/1" 
 r="-R-180/180/-90/-60" 
 
 grid=$1
@@ -26,8 +26,9 @@ name="${name}n"
 gmt begin $name png
     gmt makecpt -A0 -Cpolar -Ic -T-4/4 # starts new cpt for lwe color
     gmt grdimage $grid?lwe_thickness $r $pro -Q -t30
-    gmt colorbar -DJBC+e $r $pro -Baf 
-    gmt pscoast $r $pro -B -W
+    gmt basemap $r $pro -B30g15 -Ba30 -BWSNE
+    gmt colorbar -DJBC+e $r $pro -Bpxa2Rf1d5 -Bya+lcm
+    gmt pscoast $r $pro -W.8p 
 gmt end show
 }
 
@@ -46,8 +47,9 @@ gmt begin $name png
     gmt grdimage @earth_relief_10m $r $pro -B -C$bm # prints out basemap 
     gmt makecpt -A0 -Cpolar -Ic -T-4/4 # starts new cpt for lwe color
     gmt grdimage $grid?lwe_thickness $r $pro -Q -t30
-    gmt colorbar -DJBC+e $r $pro -Baf 
-    gmt pscoast $r $pro -B -W
+    gmt basemap $r $pro -B30 -BWSNE -Ba30
+    gmt colorbar -DJBC+e $r $pro -Bpxa2Rf1d5 -Bya+lcm
+    #gmt pscoast $r $pro -W 
 gmt end show
 }
 
@@ -64,8 +66,9 @@ gmt begin $name png
     gmt grdimage @earth_relief_01m $r $pro -B -C$bm # prints out basemap 
     gmt makecpt -A0 -Cpolar -Ic -T-4/4 # starts new cpt for lwe color
     gmt grdimage $grid?lwe_thickness $r $pro -Q -t30
-    gmt colorbar -DJBC+e $r $pro -Baf 
-    gmt pscoast $r $pro -B -W
+    gmt basemap $r $pro -B30 -Ba30 -BWSNE
+    gmt colorbar -DJBC+e $r $pro -Bpxa2Rf1d5 -Bya+lcm
+    #gmt pscoast $r $pro -W  
 gmt end show
 }
 

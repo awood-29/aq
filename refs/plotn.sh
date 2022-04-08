@@ -2,7 +2,7 @@
 # No Basemap Plot Subscript
 # Creator: Andrew Wood
 # Date Created: 3/25/22
-# Last Modified: 3/25/22
+# Last Modified: 4/7/22
 # identical to regular plot code, doesn't plot fancy background
 
 # First, gathering list of files to plot in dir
@@ -24,8 +24,9 @@ do
     gmt begin $name png
         gmt makecpt -A0 -Cpolar -Ic -T-8/8 # starts new cpt for lwe color
         gmt grdimage $1$line?lwe_thickness $r $pro -Q -t30
-        gmt colorbar -DJBC+e $r $pro -Baf 
-        gmt pscoast $r $pro -B -W
+        gmt basemap $r $pro -B30g15 -Ba30 -BWSNE
+        gmt colorbar -DJBC+e $r $pro -Bpxa2Rf1d5 -Bya+lcm
+        gmt pscoast $r $pro -W.8p
     gmt end 
 done <<< $fns #reads line by line from list of files
 
