@@ -4,7 +4,7 @@
 
 # Creator: Andrew Wood
 # Date Created: 3/23/22
-# Last Modified: 3/29/22
+# Last Modified: 4/9/22
 
 # adapted from simple grid plotter and basemap
 
@@ -138,7 +138,7 @@ if [ $opt = n ]; then
 # no basemap
      printf "Plotting without basemap\n\n"
         plotn.sh $folder
-        mv *.png $out # moves all images to correct folder
+        mv *.png $out/nobm # moves all images to correct folder
 elif [ $opt = q ]; then
 # set grid to lowres
      printf "Using lowres grid\n\n"
