@@ -7,28 +7,22 @@
 % Outputs: .mat file of variables for
 
 function specvars(ds)
-% read in .nc file, import data
-latrange = -59.5:-1:-89.5; % 31 cols
-lonrange = .5:359.5; % 360 rows
 
-
-% sets up directory stuff
+%% sets up directory stuff
 currentdir = cd; % string of current directory
 
-[rows, cols] = size(data);
-
 switch ds
-case 1 % CSR L2
-       datadir = fullfile(currentdir, '../l2/CSR'); 
-       outdir = fullfile(currentdir, './matvars/sCSR');
-
-case 2 % GFZ L2
-       datadir = fullfile(currentdir, '../l2/GFZ'); 
-       outdir = fullfile(currentdir, './matvars/sGFZ'); 
-
-case 3 % JPL L2
-       datadir = fullfile(currentdir, '../l2/JPL'); 
-       outdir = fullfile(currentdir, './matvars/sJPL');
+% case 1 % CSR L2
+%        datadir = fullfile(currentdir, '../l2/CSR'); 
+%        outdir = fullfile(currentdir, './matvars/sCSR');
+% 
+% case 2 % GFZ L2
+%        datadir = fullfile(currentdir, '../l2/GFZ'); 
+%        outdir = fullfile(currentdir, './matvars/sGFZ'); 
+% 
+% case 3 % JPL L2
+%        datadir = fullfile(currentdir, '../l2/JPL'); 
+%        outdir = fullfile(currentdir, './matvars/sJPL');
         
 case 4 % CSR L3
        datadir = fullfile(currentdir, '../l3/CSR'); 
@@ -42,9 +36,9 @@ case 6 % JPL L3
        datadir = fullfile(currentdir, '../l3/JPL'); 
        outdir = fullfile(currentdir, './matvars/JPL');
         
-case 7 % JPL Mascons
-       datadir = fullfile(currentdir, '../l3/mascon'); 
-       outdir = fullfile(currentdir, './matvars/mascon');
+% case 7 % JPL Mascons
+%        datadir = fullfile(currentdir, '../l3/mascon'); 
+%        outdir = fullfile(currentdir, './matvars/mascon');
         
 case 8 % Cumulative CSR L3
        datadir = fullfile(currentdir, '../l3/cCSR'); 
@@ -58,25 +52,56 @@ case 10 % Cumulative JPL L3
        datadir = fullfile(currentdir, '../l3/cJPL'); 
        outdir = fullfile(currentdir, './matvars/cJPL');
         
-case 11 % Cumulative JPL Mascons
-       datadir = fullfile(currentdir, '../l3/cmascon'); 
-       outdir = fullfile(currentdir, './matvars/cmascon');
+% case 11 % Cumulative JPL Mascons
+%        datadir = fullfile(currentdir, '../l3/cmascon'); 
+%        outdir = fullfile(currentdir, './matvars/cmascon');
         
  
 otherwise
         sprintf("Error: No dataset specified!\n\n");
         sprintf("Available Datasets:\n");
-        sprintf("1: Level 2 CSR\n");
-        sprintf("2: Level 2 GFZ\n");
-        sprintf("3: Level 2 JPL\n");
+        sprintf("1: Level 2 CSR (Temp. Unavailable)\n");
+        sprintf("2: Level 2 GFZ (Temp. Unavailable)\n");
+        sprintf("3: Level 2 JPL (Temp. Unavailable)\n");
         sprintf("4: Level 3 CSR\n");
         sprintf("5: Level 3 GFZ\n");
         sprintf("6: Level 3 JPL\n");
-        sprintf("7: JPL Mascons\n");
+        sprintf("7: JPL Mascons (Temp. Unavailable)\n");
         sprintf("8: Cumulative Level 3 CSR\n");
         sprintf("9: Cumulative Level 3 GFZ\n");
         sprintf("10: Cumulative Level 3 JPL\n");
-        sprintf("11: Cumulative JPL Mascons\n");
+        sprintf("11: Cumulative JPL Mascons (Temp. Unavailable)\n");
 end
+
+%% Iterating through Folder
+latrange = -89.5:-59.5; % 31 cols
+lat= repelem(latrange, 360); % 11160 cols
+lonrange = .5:359.5; % 360 rows
+lon= repmat(lonrange, [1 31]); % 11160 cols
+ 
+
+files = ls(datadir); % stores to char array
+files = cellstr(files); % to cell array
+files([1 2]) = []; % clears dot and dotdot
+
+row = zeros(1, 11160);
+data = [lat; lon; zeros(length(files), 11160)]; % reformatted to have lat in first row, then lon, ...
+% then each time series as a column
+
+for i = 1:length(files)
+    fp = sprintf('%s/%s', datadir, files{i}); % jank path to file
+    dat = ncread(fp, 'lwe_thickness'); % reads to array
+
+    for c = 1:31
+        newcol = dat(:, c);
+        newrow = newcol'; % transposes lat col to row
+        row((1+360*(c-1)):(360+360*(c-1))) = newrow;
+    end
+
+    data(2+i, :) = row; % adds row to final mat
+    row = []; %resets row
+end
+
+save(sprintf("%s/data.mat", outdir), 'data')
 
 end
