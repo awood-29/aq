@@ -82,27 +82,50 @@ end
 for a = 1:length(lats) % loops through all provided lats
     lat = lats(a);
    for b = 1:length(lons)
+   
     lon = lons(b); % sets up lat-lon pair
     col = 360*(lat+89.5) + (lon+0.5); % sketch, but determines ts col
     ts = data(3:end, col); % sets up yvalues
-    name = sprintf("lat%.1flon%.1fTS", lat, lon);
-    if exist('save', 'var')
-        % only save to file
-        f = figure('Name', name, 'NumberTitle', 'off', 'visible', 'off');
-        plot(tstime, ts, 'b-', 'LineWidth', 1.5) % plots ts for point
-        ylabel("Net \Delta lwe thickness (cm)")
-        title(sprintf("%s Time Series", name))
-        grid on
-        savename = sprintf("%s/%s", outdir, name);
-        saveas(f, savename, 'png');
+    name = sprintf("lat%.1flon%.1fTS", lat, lon); % name based on lat lon pair
+    f = figure('Name', name, 'NumberTitle', 'off'); %'visible', 'off');
+    %tiledlayout(2,1) % sets up tile
 
-    else
-        % plot regular timeseries
-        figure('Name', name, 'NumberTitle', 'off');
-        plot(tstime, ts, 'b-', 'LineWidth', 1) % plots ts for point
-        ylabel("Net \Delta lwe thickness (cm)")
-        title(sprintf("%s Time Series", name))
-        grid on
+    %nexttile  % regular plot
+    plot(tstime, ts, 'b-', 'LineWidth', 1.5) % plots ts for point
+    title(sprintf("%s Time Series", name))
+    ylabel("\Delta Equivalent Water Height (cm)")
+    ylim([0,0.5])
+    grid on
+
+    %nexttile
+    name = sprintf("lat%.1flon%.1fFFT", lat, lon); % name based on lat lon pair
+    f = figure('Name', name, 'NumberTitle', 'off'); %'visible', 'off');
+    %Fs = [0000 01 00]; % monthly sampling freq
+    %L = tstime(end)-tstime(1);
+    s = fft(ts);
+    L = length(s);
+    s(1)=[];
+    power = abs(s(1:floor(L/2))).^2; % first half power
+    maxf = 1/2; % maximum frequency ???
+    freq = (1:L/2)/(L/2)*maxf; % frequency grid
+
+    %P2 = abs(s/L); % 2 sided spectrum
+    %P1 = P2(1:L/2+1); % 1 sided spectrum using length
+    %P1(2:end-1) = 2*P1(2:end-1);
+    %freq = Fs.*(0:(L/2))/L; % defines frequency domain
+    %freq = (0:(L/2))/L; % defines frequency domain
+
+    plot(freq, power, 'b') % plots fft for point
+    ylabel("Power")
+    xlabel("Frequency")
+    title(sprintf("%s Time Series FFT", name))
+    grid on 
+
+    if exist('save', 'var')
+       if save == 1 || save == true
+           savename = sprintf("%s/%s", outdir, name);
+           saveas(f, savename, 'png');
+       end
     end
    end
 end
