@@ -7,16 +7,19 @@
 % Outputs: 
 
 function specplot(ds, lats, lons, save)
-set(0,'DefaultFigureWindowStyle','docked')  
+tic
+%set(0,'DefaultFigureWindowStyle','docked')  
 currentdir = cd;
-time = [2018 06 01; 2018 07 01; 2018 10 01; 2018 11 01; 2018 12 01; ...
-       2019 01 01; 2019 02 01; 2019 03 01; 2019 04 01; 2019 05 01; 2019 06 01; ...
-       2019 07 01; 2019 08 01; 2019 09 01; 2019 10 01; 2019 11 01; 2019 12 01;  ...
-       2020 01 01; 2020 02 01; 2020 03 01; 2020 04 01; 2020 05 01; 2020 06 01; ...
-       2020 07 01; 2020 08 01; 2020 09 01; 2020 10 01; 2020 11 01; 2020 12 01;  ...
-       2021 01 01; 2021 02 01; 2021 03 01; 2021 04 01; 2021 05 01; 2021 06 01; ...
-       2021 07 01; 2021 08 01; 2021 09 01; 2021 10 01; 2021 11 01; 2021 12 01];
-tstime = datetime(time);
+t1 = datetime(2002, 04, 01);
+t2 = datetime(2021, 12, 01);
+time = t1:calmonths(1):t2;
+tstime = time';
+missing = [3 4 15 106 111 122 127 132 137 138 143 148 ...
+           153 159 163 164 169 174 175 179 184:194 ...
+           197 198]; % months to skip
+tstime(missing) = [];
+duration = t2-t1;
+dduration = days(duration);
 
 for d = 1:length(ds)
 % Dataset selection - loops through each dataset
@@ -87,27 +90,35 @@ for a = 1:length(lats) % loops through all provided lats
     col = 360*(lat+89.5) + (lon+0.5); % sketch, but determines ts col
     ts = data(3:end, col); % sets up yvalues
     name = sprintf("lat%.1flon%.1fTS", lat, lon); % name based on lat lon pair
-    f = figure('Name', name, 'NumberTitle', 'off'); %'visible', 'off');
-    %tiledlayout(2,1) % sets up tile
 
-    %nexttile  % regular plot
+    if exist('save', 'var')
+       if save == 1 || save == true
+           f = figure('Name', name, 'NumberTitle', 'off', 'visible', 'off');
+       else
+           f = figure('Name', name, 'NumberTitle', 'off'); %'visible', 'off');
+       end
+    else
+      f = figure('Name', name, 'NumberTitle', 'off'); %'visible', 'off');
+    end
+    tiledlayout(2,1) % sets up tile
+
+    nexttile  % regular plot
     plot(tstime, ts, 'b-', 'LineWidth', 1.5) % plots ts for point
     title(sprintf("%s Time Series", name))
     ylabel("\Delta Equivalent Water Height (cm)")
-    ylim([0,0.5])
+    %ylim([-6.8,1])
     grid on
 
-    %nexttile
-    name = sprintf("lat%.1flon%.1fFFT", lat, lon); % name based on lat lon pair
-    f = figure('Name', name, 'NumberTitle', 'off'); %'visible', 'off');
-    %Fs = [0000 01 00]; % monthly sampling freq
-    %L = tstime(end)-tstime(1);
-    s = fft(ts);
-    L = length(s);
-    s(1)=[];
-    power = abs(s(1:floor(L/2))).^2; % first half power
+    nexttile
+    %name = sprintf("lat%.1flon%.1fFFT", lat, lon); % name based on lat lon pair
+    %f = figure('Name', name, 'NumberTitle', 'off'); %'visible', 'off');
+    y = fft(ts);
+    n = length(y);
+    y(1)=[];
+    power = abs(y(1:floor(n/2))).^2; % first half power
     maxf = 1/2; % maximum frequency ???
-    freq = (1:L/2)/(L/2)*maxf; % frequency grid
+    freq = (1:n/2)/(n/2)*maxf; % frequency grid
+    freq = freq.*dduration;
 
     %P2 = abs(s/L); % 2 sided spectrum
     %P1 = P2(1:L/2+1); % 1 sided spectrum using length
@@ -117,20 +128,20 @@ for a = 1:length(lats) % loops through all provided lats
 
     plot(freq, power, 'b') % plots fft for point
     ylabel("Power")
-    xlabel("Frequency")
+    xlabel("Frequency (1/days)")
+    xlim([65, 365.*2])
     title(sprintf("%s Time Series FFT", name))
     grid on 
 
     if exist('save', 'var')
        if save == 1 || save == true
+           name = strrep(name, '.', '_'); % kills periods
            savename = sprintf("%s/%s", outdir, name);
            saveas(f, savename, 'png');
        end
     end
    end
 end
-
-
 end
-
+toc
 end

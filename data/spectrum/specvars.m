@@ -11,6 +11,22 @@ function specvars(ds)
 %% sets up directory stuff
 currentdir = cd; % string of current directory
 
+if ~exist('ds', 'var')
+  fprintf("Available Datasets:\n");
+  fprintf("1: Level 2 CSR (Temp. Unavailable)\n");
+  fprintf("2: Level 2 GFZ (Temp. Unavailable)\n");
+  fprintf("3: Level 2 JPL (Temp. Unavailable)\n");
+  fprintf("4: Level 3 CSR\n");
+  fprintf("5: Level 3 GFZ\n");
+  fprintf("6: Level 3 JPL\n");
+  fprintf("7: JPL Mascons (Temp. Unavailable)\n");
+  fprintf("8: Cumulative Level 3 CSR\n");
+  fprintf("9: Cumulative Level 3 GFZ\n");
+  fprintf("10: Cumulative Level 3 JPL\n");
+  fprintf("11: Cumulative JPL Mascons (Temp. Unavailable)\n");
+  error("Error: No dataset specified!\n\n")
+end
+
 switch ds
 % case 1 % CSR L2
 %        datadir = fullfile(currentdir, '../l2/CSR'); 
@@ -55,22 +71,6 @@ case 10 % Cumulative JPL L3
 % case 11 % Cumulative JPL Mascons
 %        datadir = fullfile(currentdir, '../l3/cmascon'); 
 %        outdir = fullfile(currentdir, './matvars/cmascon');
-        
- 
-otherwise
-        sprintf("Error: No dataset specified!\n\n");
-        sprintf("Available Datasets:\n");
-        sprintf("1: Level 2 CSR (Temp. Unavailable)\n");
-        sprintf("2: Level 2 GFZ (Temp. Unavailable)\n");
-        sprintf("3: Level 2 JPL (Temp. Unavailable)\n");
-        sprintf("4: Level 3 CSR\n");
-        sprintf("5: Level 3 GFZ\n");
-        sprintf("6: Level 3 JPL\n");
-        sprintf("7: JPL Mascons (Temp. Unavailable)\n");
-        sprintf("8: Cumulative Level 3 CSR\n");
-        sprintf("9: Cumulative Level 3 GFZ\n");
-        sprintf("10: Cumulative Level 3 JPL\n");
-        sprintf("11: Cumulative JPL Mascons (Temp. Unavailable)\n");
 end
 
 %% Iterating through Folder
