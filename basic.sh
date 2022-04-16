@@ -2,7 +2,7 @@
 # Sample Plot Subscript
 # Creator: Andrew Wood
 # Date Created: 3/29/22
-# Last Modified: 3/31/22
+# Last Modified: 4/15/22
 
 ## Inputs ##
 # $1: grid to plot
@@ -24,7 +24,7 @@ name=${grid::-3} #removes file extension
 name="${name}n"
 
 gmt begin $name png
-    gmt makecpt -A0 -Cpolar -Ic -T-4/4 # starts new cpt for lwe color
+    gmt makecpt -A0 -Cpolar -Ic -T-8/8 # starts new cpt for lwe color
     gmt grdimage $grid?lwe_thickness $r $pro -Q -t30
     gmt basemap $r $pro -B30g15 -Ba30 -BWSNE
     gmt colorbar -DJBC+e $r $pro -Bpxa2Rf1d5 -Bya+lcm
@@ -45,7 +45,7 @@ name="${name}q"
 
 gmt begin $name png
     gmt grdimage @earth_relief_10m $r $pro -B -C$bm # prints out basemap 
-    gmt makecpt -A0 -Cpolar -Ic -T-4/4 # starts new cpt for lwe color
+    gmt makecpt -A0 -Cpolar -Ic -T-8/8 # starts new cpt for lwe color
     gmt grdimage $grid?lwe_thickness $r $pro -Q -t30
     gmt basemap $r $pro -B30 -BWSNE -Ba30
     gmt colorbar -DJBC+e $r $pro -Bpxa2Rf1d5 -Bya+lcm
@@ -64,7 +64,7 @@ name=${grid::-3} #removes file extension
 
 gmt begin $name png
     gmt grdimage @earth_relief_01m $r $pro -B -C$bm # prints out basemap 
-    gmt makecpt -A0 -Cpolar -Ic -T-4/4 # starts new cpt for lwe color
+    gmt makecpt -A0 -Cpolar -Ic -T-8/8 # starts new cpt for lwe color
     gmt grdimage $grid?lwe_thickness $r $pro -Q -t30
     gmt basemap $r $pro -B30 -Ba30 -BWSNE
     gmt colorbar -DJBC+e $r $pro -Bpxa2Rf1d5 -Bya+lcm
