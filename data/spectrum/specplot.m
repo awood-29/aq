@@ -8,18 +8,35 @@
 
 function specplot(ds, lats, lons, save)
 tic
-%set(0,'DefaultFigureWindowStyle','docked')  
+set(0,'DefaultFigureWindowStyle','docked')
 currentdir = cd;
-t1 = datetime(2002, 04, 01);
-t2 = datetime(2021, 12, 01);
-time = t1:calmonths(1):t2;
-tstime = time';
-missing = [3 4 15 106 111 122 127 132 137 138 143 148 ...
-           153 159 163 164 169 174 175 179 184:194 ...
-           197 198]; % months to skip
-tstime(missing) = [];
-duration = t2-t1;
-dduration = days(duration);
+
+% Retrying with days instead of months
+leap = ones(1, 20) .* 365;
+leap(4:4:end) = 366;
+leap(1) = 0;
+addin = cumsum(leap);
+addin = repelem(addin, 12);
+addin(1:3) = [];
+addin = addin';
+
+dates = readmatrix('gfodates.csv', 'Range', [2 1 238 3]);
+mask = isnan(dates(:, 1));
+dates(mask, :) = [];
+addin(mask) = [];
+
+startDay = dates(:,2); % start day of each dataset
+endDay = dates(:,3); % end day of each dataset
+mask2 = endDay < startDay;
+endDay(mask2) = endDay(mask2) + 365;
+avgDay = (startDay + endDay)/2;
+tsdays =  avgDay + addin; % time in days
+tsdays = tsdays - tsdays(1); % days from first day, first day = 0
+tsdays = floor(tsdays);
+
+% converting to datetime for regular plot
+t1 = datetime(2002, 04, 15);
+tstime = t1 + caldays(tsdays);
 
 for d = 1:length(ds)
 % Dataset selection - loops through each dataset
@@ -35,16 +52,19 @@ case 4 % CSR L3
        outdir = fullfile(currentdir, './images/CSR');
        data=load(sprintf('%s/matvars/CSR/data.mat', currentdir));
        data = data.data;
+       linecolor = 'r';
 
 case 5 % GFZ L3
        outdir = fullfile(currentdir, './images/GFZ');
        data=load(sprintf('%s/matvars/GFZ/data.mat', currentdir));
        data = data.data;
+       linecolor = 'g';
 
 case 6 % JPL L3
        outdir = fullfile(currentdir, './images/JPL');
        data=load(sprintf('%s/matvars/JPL/data.mat', currentdir));
        data = data.data;
+       linecolor = 'b';
 
 % case 7 % JPL Mascons
         
@@ -52,16 +72,19 @@ case 8 % Cumulative CSR L3
        outdir = fullfile(currentdir, './images/cCSR');
        data=load(sprintf('%s/matvars/cCSR/data.mat', currentdir));
        data = data.data;
+       linecolor = 'r';
 
 case 9 % Cumulative GFZ L3
        outdir = fullfile(currentdir, './images/cGFZ');
        data=load(sprintf('%s/matvars/cGFZ/data.mat', currentdir));
        data = data.data;
+       linecolor = 'g';
 
 case 10 % Cumulative JPL L3
        outdir = fullfile(currentdir, './images/cJPL');
        data=load(sprintf('%s/matvars/cJPL/data.mat', currentdir));
        data = data.data;
+       linecolor = 'b';
 
 % case 11 % Cumulative JPL Mascons
         
@@ -89,7 +112,7 @@ for a = 1:length(lats) % loops through all provided lats
     lon = lons(b); % sets up lat-lon pair
     col = 360*(lat+89.5) + (lon+0.5); % sketch, but determines ts col
     ts = data(3:end, col); % sets up yvalues
-    name = sprintf("lat%.1flon%.1fTS", lat, lon); % name based on lat lon pair
+    name = sprintf("lat%.1flon%.1f", lat, lon); % name based on lat lon pair
 
     if exist('save', 'var')
        if save == 1 || save == true
@@ -102,34 +125,29 @@ for a = 1:length(lats) % loops through all provided lats
     end
     tiledlayout(2,1) % sets up tile
 
-    nexttile  % regular plot
-    plot(tstime, ts, 'b-', 'LineWidth', 1.5) % plots ts for point
+    nexttile  % regular plot, with datetime array
+    plot(tstime, ts, linecolor, 'LineWidth', 1.5) % plots ts for point
     title(sprintf("%s Time Series", name))
     ylabel("\Delta Equivalent Water Height (cm)")
+
     %ylim([-6.8,1])
     grid on
 
     nexttile
     %name = sprintf("lat%.1flon%.1fFFT", lat, lon); % name based on lat lon pair
     %f = figure('Name', name, 'NumberTitle', 'off'); %'visible', 'off');
-    y = fft(ts);
-    n = length(y);
-    y(1)=[];
-    power = abs(y(1:floor(n/2))).^2; % first half power
-    maxf = 1/2; % maximum frequency ???
-    freq = (1:n/2)/(n/2)*maxf; % frequency grid
-    freq = freq.*dduration;
+    
+    % using Lomb-Scargle periodogram b/c uneven sampling
+    % tsdays = time sequence in days
+    % ts = lwe values
+    [Plomb, flomb] = plomb(ts, tstime);
+    flomb = flomb*60*60*24; % to days
+    period = 1./flomb; % days / cycle
 
-    %P2 = abs(s/L); % 2 sided spectrum
-    %P1 = P2(1:L/2+1); % 1 sided spectrum using length
-    %P1(2:end-1) = 2*P1(2:end-1);
-    %freq = Fs.*(0:(L/2))/L; % defines frequency domain
-    %freq = (0:(L/2))/L; % defines frequency domain
-
-    plot(freq, power, 'b') % plots fft for point
-    ylabel("Power")
-    xlabel("Frequency (1/days)")
-    xlim([65, 365.*2])
+    plot(period, Plomb, linecolor) % plots fft for point
+    ylabel("Power Spectral Density")
+    xlabel("Period (days/cycle)")
+    xlim([30, 800])
     title(sprintf("%s Time Series FFT", name))
     grid on 
 
