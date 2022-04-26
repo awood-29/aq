@@ -1,15 +1,14 @@
 %% Spectrum Plotter
 % Author: Andrew Wood
 % Created: 4/11/22
-% Last Edited: 4/13/22
+% Last Edited: 4/26/22
 
 % Inputs: dataset(s), lat(s), lon(s), check for save 
 % Outputs: 
 
-function specplot(ds, lats, lons, save)
+function specplot(ds, group, lats, lons, save)
 tic
 set(0,'DefaultFigureWindowStyle','docked')
-currentdir = cd;
 
 % Retrying with days instead of months
 leap = ones(1, 20) .* 365;
@@ -37,6 +36,38 @@ tsdays = floor(tsdays);
 % converting to datetime for regular plot
 t1 = datetime(2002, 04, 15);
 tstime = t1 + caldays(tsdays);
+if group == 2
+   tstime = tstime(end-35:end); % only 19-21
+end
+
+%% dataset/group selection
+if ~exist('ds', 'var') || ~exist('group', 'var')
+   fprintf("Available Groups:\n");
+   fprintf("1: Full Time Series\n");
+   fprintf("2: 2019-2021\n");
+   fprintf("Error: No dataset specified!\n\n");
+   fprintf("Available Datasets:\n");
+   fprintf("1: Level 2 CSR (Temp. Unavailable)\n");
+   fprintf("2: Level 2 GFZ (Temp. Unavailable)\n");
+   fprintf("3: Level 2 JPL (Temp. Unavailable)\n");
+   fprintf("4: Level 3 CSR\n");
+   fprintf("5: Level 3 GFZ\n");
+   fprintf("6: Level 3 JPL\n");
+   fprintf("7: JPL Mascons (Temp. Unavailable)\n");
+   fprintf("8: Cumulative Level 3 CSR\n");
+   fprintf("9: Cumulative Level 3 GFZ\n");
+   fprintf("10: Cumulative Level 3 JPL\n");
+   fprintf("11: Cumulative JPL Mascons (Temp. Unavailable)\n"); 
+end
+
+switch group
+    case 1 % Full Time Series
+        tag1 = "full";
+    case 2 % 2019-2021
+        tag1 = "2019_21";
+    otherwise
+        error("no group specified");
+end
 
 for d = 1:length(ds)
 % Dataset selection - loops through each dataset
@@ -49,61 +80,40 @@ switch ds(d)
 % case 3 % JPL L2
         
 case 4 % CSR L3
-       outdir = fullfile(currentdir, './images/CSR');
-       data=load(sprintf('%s/matvars/CSR/data.mat', currentdir));
-       data = data.data;
+       tag1 = "CSR";
        linecolor = 'r';
 
 case 5 % GFZ L3
-       outdir = fullfile(currentdir, './images/GFZ');
-       data=load(sprintf('%s/matvars/GFZ/data.mat', currentdir));
-       data = data.data;
+       tag1 = "GFZ";
        linecolor = 'g';
 
 case 6 % JPL L3
-       outdir = fullfile(currentdir, './images/JPL');
-       data=load(sprintf('%s/matvars/JPL/data.mat', currentdir));
-       data = data.data;
+       tag1 = "JPL";
        linecolor = 'b';
 
 % case 7 % JPL Mascons
         
 case 8 % Cumulative CSR L3
-       outdir = fullfile(currentdir, './images/cCSR');
-       data=load(sprintf('%s/matvars/cCSR/data.mat', currentdir));
-       data = data.data;
+       tag1 = "cCSR";
        linecolor = 'r';
 
 case 9 % Cumulative GFZ L3
-       outdir = fullfile(currentdir, './images/cGFZ');
-       data=load(sprintf('%s/matvars/cGFZ/data.mat', currentdir));
-       data = data.data;
+       tag1 = "cGFZ";
        linecolor = 'g';
 
 case 10 % Cumulative JPL L3
-       outdir = fullfile(currentdir, './images/cJPL');
-       data=load(sprintf('%s/matvars/cJPL/data.mat', currentdir));
-       data = data.data;
+       tag1 = "cJPL";
        linecolor = 'b';
 
 % case 11 % Cumulative JPL Mascons
         
-    otherwise
-        sprintf("Error: No dataset specified!\n\n");
-        sprintf("Available Datasets:\n");
-        sprintf("1: Level 2 CSR (Temp. Unavailable)\n");
-        sprintf("2: Level 2 GFZ (Temp. Unavailable)\n");
-        sprintf("3: Level 2 JPL (Temp. Unavailable)\n");
-        sprintf("4: Level 3 CSR\n");
-        sprintf("5: Level 3 GFZ\n");
-        sprintf("6: Level 3 JPL\n");
-        sprintf("7: JPL Mascons (Temp. Unavailable)\n");
-        sprintf("8: Cumulative Level 3 CSR\n");
-        sprintf("9: Cumulative Level 3 GFZ\n");
-        sprintf("10: Cumulative Level 3 JPL\n");
-        sprintf("11: Cumulative JPL Mascons (Temp. Unavailable)\n"); 
-        return
 end
+
+current = cd;
+datadir = fullfile(current, sprintf('../results/matvars/%s/%s', tag1, tag2));
+outdir = fullfile(current, '../results/plots/%s/%s', tag1, tag2);
+data = load(datadir);
+data = data.data;
 
 for a = 1:length(lats) % loops through all provided lats
     lat = lats(a);
@@ -147,7 +157,7 @@ for a = 1:length(lats) % loops through all provided lats
     plot(period, Plomb, linecolor) % plots fft for point
     ylabel("Power Spectral Density")
     xlabel("Period (days/cycle)")
-    xlim([30, 800])
+    %xlim([30, 800])
     title(sprintf("%s Time Series FFT", name))
     grid on 
 

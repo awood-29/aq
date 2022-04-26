@@ -2,7 +2,7 @@
 # 
 # Creator: Andrew Wood
 # Date Created: 4/14/22
-# Last Modified: 4/14/22
+# Last Modified: 4/26/22
 
 # Improved download script
 # Steps:
@@ -11,9 +11,10 @@
 # Run jplrd.sh to fix any leftovers for jpl
 # Run resize.sh to cut to size
 
-center="JPL"
-center2="JPLEM"
-outpath="$(pwd)/../l3/JPL"
+center="JPL" # CSR, GFZ, JPL
+center2="JPLEM" # UTCSR, GFZOP, JPLEM
+outpath="$(pwd)/../l3/JPL" # CSR, GFZ, JPL
+
 names="$(pwd)/names/names.txt"
 daystart="$(pwd)/urls/ds.txt"
 dayend="$(pwd)/urls/de.txt"

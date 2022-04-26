@@ -4,7 +4,7 @@
 #
 # Creator: Andrew Wood
 # Date Created: 3/29/22
-# Last Modified: 3/29/22 
+# Last Modified: 4/26/22 
 
 # Inputs
 # $1: grid file inputs
@@ -17,7 +17,7 @@ name=$2
 startval=164
 count=$((startval))
 stopval=204 # start and stop increments. 204 for now b/c other l3 sources don't have 205 yet
-path="l3/mascon/" # insert path to location here
+path="../l3/full/mascon/" # insert path to location here
 
 # reads each name line, assigns timestep to it. Saves to desired location
 while read -r a; do

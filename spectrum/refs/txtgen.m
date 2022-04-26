@@ -1,11 +1,32 @@
-%% Txt Generator for PCA
+%% Txt Data Generator for PCA
 % Author: Andrew Wood
 % Created: 4/15/22
-% Last Edited: 4/15/22
+% Last Edited: 4/26/22
 
-%import
-data=load('jplprep.mat');
-data = data.tsdatanew;
+group = "2019_21";
+ds = "cCSR";
+
+%% Loads from file and writes to new var
+current = pwd;
+outdir = fullfile(current, sprintf("../results/matvars/%s/%s", group, ds));
+data = load(outdir,'data');
+data = data.data;
+tsdata = data([2:-1:1, 171:206], 1:10080);
+[r, c] = size(tsdata);
+tsdatanew = []; % blank template
+
+for cur = 1:360
+   cols = tsdata(:, cur:360:c); % selects all of 1 latitude
+   tsdatanew = [tsdatanew cols];
+end
+
+tsdatanew(1,:) = tsdatanew(1, :) -180; % shifts to -179.5
+%save(sprintf("%s/%sprep.mat", outdir, ds), 'tsdatanew')
+
+%% writing to text files
+%loadvarpath = 'csrprep.mat'; % add path to prep.mat variable
+%data=load(loadvarpath);
+data = tsdatanew;
 
 lons = data(1, :); % all lons
 lats = data(2, :); % all lats
@@ -25,7 +46,7 @@ for t = 1:36
    months = ["01" "02" "03" "04" "05" "06" ...
              "07" "08" "09" "10" "11" "12" ];
    month = months(month);
-   name = sprintf('%d_%s.txt', year, month);
+   name = fullfile(current, sprintf('../results/txt/%s/%s/%d_%s.txt', group, ds, year, month));
    fid = fopen(name, 'wt');
 
    row = data(t, :); % selects row vec of z values
@@ -41,9 +62,4 @@ for t = 1:36
    fclose(fid);
 end
 
-
-
-
-
-
-
+fclose all;

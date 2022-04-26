@@ -1,17 +1,25 @@
 %% Spectrum Data Prep
 % Author: Andrew Wood
 % Created: 4/11/22
-% Last Edited: 4/11/22
+% Last Edited: 4/26/22
 
 % Inputs: None
 % Outputs: .mat file of variables for
 
-function specvars(ds)
+function specvars(ds, group)
+%% vars
+latmin = -89.5;
+latmax = -62.5;
+lonmin = 0.5;
+lonmax = 359.5;
+latrange = latmin:latmax; % 28 cols, normally
+lonrange = lonmin:lonmax; % 360 rows, normally
 
-%% sets up directory stuff
-currentdir = cd; % string of current directory
-
-if ~exist('ds', 'var')
+%% Warning for no inputs
+if nargin < 2
+  fprintf("Available Groups:\n");
+  fprintf("1: Full Time Series\n");
+  fprintf("2: 2019-2021\n");
   fprintf("Available Datasets:\n");
   fprintf("1: Level 2 CSR (Temp. Unavailable)\n");
   fprintf("2: Level 2 GFZ (Temp. Unavailable)\n");
@@ -27,65 +35,64 @@ if ~exist('ds', 'var')
   error("Error: No dataset specified!\n\n")
 end
 
-switch ds
-% case 1 % CSR L2
-%        datadir = fullfile(currentdir, '../l2/CSR'); 
-%        outdir = fullfile(currentdir, './matvars/sCSR');
-% 
-% case 2 % GFZ L2
-%        datadir = fullfile(currentdir, '../l2/GFZ'); 
-%        outdir = fullfile(currentdir, './matvars/sGFZ'); 
-% 
-% case 3 % JPL L2
-%        datadir = fullfile(currentdir, '../l2/JPL'); 
-%        outdir = fullfile(currentdir, './matvars/sJPL');
-        
-case 4 % CSR L3
-       datadir = fullfile(currentdir, '../l3/CSR'); 
-       outdir = fullfile(currentdir, './matvars/CSR');
+%% sets up directory stuff
 
-case 5 % GFZ L3
-       datadir = fullfile(currentdir, '../l3/GFZ'); 
-       outdir = fullfile(currentdir, './matvars/GFZ');
-        
-case 6 % JPL L3
-       datadir = fullfile(currentdir, '../l3/JPL'); 
-       outdir = fullfile(currentdir, './matvars/JPL');
-        
-% case 7 % JPL Mascons
-%        datadir = fullfile(currentdir, '../l3/mascon'); 
-%        outdir = fullfile(currentdir, './matvars/mascon');
-        
-case 8 % Cumulative CSR L3
-       datadir = fullfile(currentdir, '../l3/cCSR'); 
-       outdir = fullfile(currentdir, './matvars/cCSR');
-        
-case 9 % Cumulative GFZ L3
-       datadir = fullfile(currentdir, '../l3/cGFZ'); 
-       outdir = fullfile(currentdir, './matvars/cGFZ');
-        
-case 10 % Cumulative JPL L3
-       datadir = fullfile(currentdir, '../l3/cJPL'); 
-       outdir = fullfile(currentdir, './matvars/cJPL');
-        
-% case 11 % Cumulative JPL Mascons
-%        datadir = fullfile(currentdir, '../l3/cmascon'); 
-%        outdir = fullfile(currentdir, './matvars/cmascon');
+switch group
+    case 1 % Full Time Series
+        tag1 = "full";
+    case 2 % 2019-2021
+        tag1 = "2019_21";
+    otherwise
+        error("no group specified");
 end
 
+switch ds
+% case 1 % CSR L2
+% 
+% case 2 % GFZ L2
+% 
+% case 3 % JPL L2
+        
+case 4 % CSR L3
+    tag2 = "CSR";
+case 5 % GFZ L3
+    tag2 = "GFZ";
+        
+case 6 % JPL L3
+    tag2 = "JPL";
+        
+% case 7 % JPL Mascons
+        
+case 8 % Cumulative CSR L3
+    tag2 = "cCSR";
+        
+case 9 % Cumulative GFZ L3
+    tag2 = "cGFZ";
+        
+case 10 % Cumulative JPL L3
+    tag2 = "cJPL";
+        
+% case 11 % Cumulative JPL Mascons
+
+end
+
+current = cd; % string of current directory
+datadir = fullfile(current, sprintf("../../data/l3/%s/%s", tag1, tag2));
+outdir = fullfile(current, sprintf("../results/matvars/%s/%s", tag1, tag2));
+
+
 %% Iterating through Folder
-latrange = -89.5:-59.5; % 31 cols
-lat= repelem(latrange, 360); % 11160 cols
-lonrange = .5:359.5; % 360 rows
-lon= repmat(lonrange, [1 31]); % 11160 cols
+lat= repelem(latrange, length(lonrange)); % 10080 cols
+lon= repmat(lonrange, [1 length(latrange)]); % 10080 cols
  
 
 files = ls(datadir); % stores to char array
 files = cellstr(files); % to cell array
 files([1 2]) = []; % clears dot and dotdot
 
-row = zeros(1, 11160);
-data = [lat; lon; zeros(length(files), 11160)]; % reformatted to have lat in first row, then lon, ...
+totlen = length(lat);
+row = zeros(1, totlen);
+data = [lat; lon; zeros(length(files), totlen)]; % reformatted to have lat in first row, then lon, ...
 % then each time series as a column
 
 for i = 1:length(files)
@@ -95,7 +102,8 @@ for i = 1:length(files)
     for c = 1:31
         newcol = dat(:, c);
         newrow = newcol'; % transposes lat col to row
-        row((1+360*(c-1)):(360+360*(c-1))) = newrow;
+        row((1+length(lonrange)*(c-1)):(length(lonrange)+...
+           length(lonrange)*(c-1))) = newrow;
     end
 
     data(2+i, :) = row; % adds row to final mat

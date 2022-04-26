@@ -1,13 +1,16 @@
 %% Avg Generator for PCA
 % Author: Andrew Wood
 % Created: 4/16/22
-% Last Edited: 4/16/22
+% Last Edited: 4/26/22
+
+group = "2019_21";
 
 lons = zeros(10800, 1);
 lats = zeros(10800, 1);
 
-for t = 1:36
-arr = zeros(10080, 3); % initiates arr
+for t = 1:36   
+   arr = zeros(10080, 3); % initiates arr
+
 % csr, gfz, jpl
    
    for dc = 1:3
@@ -29,7 +32,7 @@ arr = zeros(10080, 3); % initiates arr
       months = ["01" "02" "03" "04" "05" "06" ...
                 "07" "08" "09" "10" "11" "12" ];
       month = months(month);
-      name = sprintf('%s/%s/%d_%s.txt', current, target, year, month);
+      name = sprintf('%s/../results/txt/%s/%s/%d_%s.txt', current, group, target, year, month);
 
       % while loop to read through text file
       fid = fopen(name);
@@ -56,7 +59,7 @@ arr = zeros(10080, 3); % initiates arr
    avgs = mean(arr, 2, 'omitnan');
 
    % file to write averages too
-   namew = sprintf('%s/%s/%d_%s.txt', current, avg, year, month);
+   namew = sprintf('%s/../results/txt/%s/%s/%d_%s.txt', current, group, avg, year, month);
    fidwrite = fopen(namew, 'wt');
    for g = 1:length(avgs)
       % write to file w/ lon,lat,avg, switching NaN to -999999

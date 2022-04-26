@@ -4,14 +4,14 @@
 #
 # Creator: Andrew Wood
 # Date Created: 3/31/22
-# Last Modified: 4/14/22
+# Last Modified: 4/26/22
 
 # Description: Takes a folder of single-month grid files and 
 #              transforms to a cumulative set of grids
 
 # Inputs: 
-# $1: relative filepath to data dir ex. ../l3/CSR 
-# $2: relative path to output ex ../l3/cCSR
+# $1: relative filepath to data dir ex. ../l3/full/CSR 
+# $2: relative path to output ex ../l3/full/cCSR
 
 fns=$(ls -lh $1 | sed '1,2d' | awk '{print $9}') # list of filenames in dir, minus the initial
 sum=$(ls -lh $1 | awk 'NR==2 {print $9}') # initial file
