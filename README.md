@@ -4,7 +4,7 @@
 
 ### Contents
 #### Main 
-###### Scripts
+###### Scripts: Time Series
 *basic.sh*:
 Description: Basic plotter for .nc files. Primarily used for testing plot updates
              before repeating for large datasets.
