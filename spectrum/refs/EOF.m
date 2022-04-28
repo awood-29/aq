@@ -18,6 +18,8 @@ function [pv] = EOF(group, ds, n, out1, out2, norm, dt)
 % EC are the expansion coefficients (PCs in other terminology) 
 
 % pv holds the percent variance explained by each eigenval
+
+% Heads up, .nc writing is a lil hardcoded
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Argument Processing
@@ -39,8 +41,9 @@ if ~exist('out2', 'var')
 end
 
 if nargin < 1
-   ps();
+    ps();
 end
+
 %% Data Import
 
 [tag1, tag2] = tag(group, ds); % strings for dir names, tag1 is group, tag2 is ds
@@ -54,7 +57,7 @@ data = data.data; % loads mat with points
 latlon = data(1:2, :);
 U = data(3:end, :); % removes lat/lon header
 skipcols = isnan(sum(U)); % undefined cols
-% skipped = latlon(:, skipcols); % latlon points skipped
+%skipped = latlon(:, skipcols); % latlon points skipped
 points = latlon(:, ~skipcols); % latlon points left
 U = U(:, ~skipcols); % removes all NaN
 %out = [points; U];
@@ -146,18 +149,72 @@ end
 
 
 %% Exporting modes for plotting in GMT
+% if out2
+%    for a = 1:n
+%       En = [points; EOFs(:, a)'];
+%       fid = fopen(sprintf("%s/E%d", outdir, a), 'wt');
+%       for b = 1:height(EOFs)
+%          lat = En(1, b); % lat point
+%          lon = En(2, b); % lon point
+%          z = En(3, b);
+%          fprintf(fid, "%3.1f,%4.1f,%f\n", lat, lon, z);
+%       end
+%       fclose(fid);
+%    end
+% end
+
+%% Exporting modes to .nc
 if out2
    for a = 1:n
+      % rewriting
       En = [points; EOFs(:, a)'];
-      fid = fopen(sprintf("%s/E%d", outdir, a), 'wt');
-      for b = 1:height(EOFs)
-         lat = En(1, b); % lat point
-         lon = En(2, b); % lon point
-         z = En(3, b);
-         fprintf(fid, "%3.1f,%4.1f,%f\n", lat, lon, z);
+      z = NaN(28, 360);
+      %lat = -89.5:-62.5;
+      %lon = 0.5:359.5;
+      for k = 1:length(EOFs)
+         rowidx = En(1, k)+90.5; %lat -89.5 > 1, -62.5 > 28
+         colidx = En(2, k)+0.5; %lon 0.5 > 1, 359.5 > 360
+         z(rowidx,colidx) = En(3,k); % assigns z val to correct point
       end
-      fclose(fid);
+      z = z';
+
+      name2 = sprintf("%s/EOF%d.nc", outdir, a);
+      nccreate(name2, 'lon', 'Dimensions', {'lon' 360});
+      ncwriteatt(name2, 'lon', 'standard_name', 'longitude');
+      ncwriteatt(name2, 'lon', 'long_name', 'longitude');
+      ncwriteatt(name2, 'lon', 'units', 'degrees_east');
+      ncwriteatt(name2, 'lon', 'axis', 'X');
+      ncwriteatt(name2, 'lon', 'actual_range', [0.5, 359.5]);
+
+
+      nccreate(name2, 'lat', 'Dimensions', {'lat' 28});
+      ncwriteatt(name2, 'lat', 'standard_name', 'latitude');
+      ncwriteatt(name2, 'lat', 'long_name', 'latitude');
+      ncwriteatt(name2, 'lat', 'units', 'degrees_north');
+      ncwriteatt(name2, 'lat', 'axis', 'Y');
+      ncwriteatt(name2, 'lat', 'actual_range', [-89.5, -62.5]);
+
+      nccreate(name2, 'EOF', 'Dimensions', {'lon' 360 'lat' 28});
+      ncwriteatt(name2, 'EOF', 'standard_name', 'EOF');
+      ncwriteatt(name2, 'EOF', 'long_name', 'Empirical_Orthogonal_Function');
+      ncwriteatt(name2, 'EOF', 'units', 'magnitude');
+      %ncwriteatt(name2, 'EOF', '_FillValue', NaN);
+      ncwriteatt(name2, 'EOF', 'actual_range', [min(min(z)), max(max(z))]);
+
+      ncwrite(name2, 'lat', -89.5:-62.5);
+      ncwrite(name2, 'lon', 0.5:359.5);
+      ncwrite(name2, 'EOF', z);
    end
 end
 
 end
+
+
+
+
+
+
+
+
+
+
