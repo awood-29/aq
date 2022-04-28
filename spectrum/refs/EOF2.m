@@ -1,26 +1,22 @@
-function [percentvar, L, b, c] = EOF2(group, ds, norm, dt)
+function [Cs, ECi, pv, c, Ls] = EOF2(group, ds)
 %% GRACE EOF
 % Description
 % Author: Andrew Wood
-% Created: 4/27/22
-% Last Edited: 4/27/22
+% Created: 4/28/22
+% Last Edited: 4/28/22
 % Computes EOF of a matrix, designed for GRACE/GRACEFO/IceSat/IceSat2 datasets
+% Note: this is just a test to make sure svd does what I think it does
 
 % L are the eigenvalues of the covariance matrix ( ie. they are normalized
 % by 1/(m-1), where m is the number of rows ).  
 
 % EC are the expansion coefficients (PCs in other terminology) 
 
-% percentvar holds the percent variance explained by each eigenval
+% pv holds the percent variance explained by each eigenval
 % c holds the total percent captured by EOFs 1-3
-% b is the input matrix minus the decomposition. Should be ~0
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Argument Processing
-
-if ~exist('norm', 'var')
-  norm = false; % default no normalization
-end
 
 if ~exist('dt', 'var')
   dt = true; % default detrend
@@ -39,47 +35,34 @@ datadir = fullfile(current, sprintf("../results/matvars/%s/%s", tag1, tag2));
 
 data = load(sprintf("%s/data.mat", datadir));
 data = data.data; % loads mat with points 
+% latlon = data(1:2, :);
 U = data(3:end, :); % removes lat/lon header
+skipcols = isnan(sum(U)); % undefined cols
+% skipped = latlon(:, skipcols); % latlon points skipped
+% points = latlon(:, ~skipcols); % latlon points left
+U = U(:, ~skipcols); % removes all NaN
 
-%% Normalization / Detrend
-s = size(U);
+% removing NaN cols
 
-% Normalize by standard deviation if desired.
-mask = isnan(U);
-if norm
-  norms = std(U, 'omitnan');
-else
-  norms = ones([1,s(2)]);
-end
-U(mask) = 0;
-mask2 = isnan(norms);
-norms(mask2) = 0;
-U = U * diag(1./norms);
+
+%% Detrend + SVD
 
 % detrend if selected *** start here
 if dt
    warning('off', 'MATLAB:detrend:PolyNotUnique')
    U = detrend(U, 1, 'omitnan');
+   %U = detrend(U, 0, 'omitnan');
 end
 
-%% SVD
+covar = U'*U; % covariance matrix
+[C, L] = eig(covar); % eigenvals + vecs
+% eigenvals on diagonal of L, vecs column vecs of C
+[~, ind] = sort(diag(L), 'descend'); % sorting eigenvals + vecs
+Ls = L(ind, ind); % sorts vals
+Cs = C(:, ind); % sorts vecs
 
-% Use svd in case we want all EOFs - quicker.
-mask3 = isnan(U);
-U(mask3) = 1;
+ECi = U * Cs; % expansion coeffs corresponding to each eigenval
+pv = diag(Ls)/trace(Ls);
+c = sum(pv(1:3));
 
-[C, lambda, EOFs] = svd(U);
-
-a = C*lambda*EOFs;
-b = U - a;
-
-% Compute EC's and L
-% EC = C * lambda; % Expansion coefficients.
-L = diag( lambda ) .^ 2 / (s(1)-1); % eigenvalues.
-percentvar = L/sum(L);
-c = sum(percentvar(1:3));
-
-% Compute error.
-%diff=(U-EC*EOFs');
-%error=sqrt( sum( diff .* conj(diff) ) );
 end
