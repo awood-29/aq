@@ -1,4 +1,4 @@
-function [percentvar, L, c, out] = EOF(group, ds, norm, dt)
+function [percentvar, L, b, c] = EOF2(group, ds, norm, dt)
 %% GRACE EOF
 % Description
 % Author: Andrew Wood
@@ -39,31 +39,21 @@ datadir = fullfile(current, sprintf("../results/matvars/%s/%s", tag1, tag2));
 
 data = load(sprintf("%s/data.mat", datadir));
 data = data.data; % loads mat with points 
-latlon = data(1:2, :);
 U = data(3:end, :); % removes lat/lon header
-skipcols = isnan(sum(U)); % undefined cols
-skipped = latlon(:, skipcols); % latlon points skipped
-points = latlon(:, ~skipcols); % latlon points left
-U = U(:, ~skipcols); % removes all NaN
-
-out = [points; U];
-
-% removing NaN cols
-
 
 %% Normalization / Detrend
 s = size(U);
 
 % Normalize by standard deviation if desired.
-%mask = isnan(U);
+mask = isnan(U);
 if norm
   norms = std(U, 'omitnan');
 else
   norms = ones([1,s(2)]);
 end
-%U(mask) = 0;
-%mask2 = isnan(norms);
-%norms(mask2) = 0;
+U(mask) = 0;
+mask2 = isnan(norms);
+norms(mask2) = 0;
 U = U * diag(1./norms);
 
 % detrend if selected *** start here
@@ -81,7 +71,7 @@ U(mask3) = 1;
 [C, lambda, EOFs] = svd(U);
 
 a = C*lambda*EOFs;
-%b = U - a;
+b = U - a;
 
 % Compute EC's and L
 % EC = C * lambda; % Expansion coefficients.
