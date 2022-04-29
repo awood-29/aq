@@ -86,7 +86,7 @@ end
 
 % Use svd in case we want all EOFs - quicker.
 
-[~, lambda, EOFs] = svd(U);
+[C, lambda, EOFs] = svd(U);
 
 %a = C*lambda*EOFs;
 %b = U - a;
@@ -98,8 +98,15 @@ pv = pv(1:n); % truncates at number of modes
 pv(n+1) = sum(pv); % adds sum to last row of out
 pv = pv*100;
 %c = sum(pv(1:3));
-ECs = U * EOFs; % expansion coeffs
-%reconstruct = ECs(1:n, :) * EOFs(:, 1:n); % 3 orthogonal vecs in R3
+% ECs = U * EOFs; % expansion coeffs
+ECs = C * lambda; % from the .m,  actually the same
+vprime = EOFs';
+
+reconstruct = {};
+for a = 1:n
+   reconstruct{1} = ECs(:, 1:a) * vprime(1:a, :);
+end
+% reconstruct holds time series for mode 1, mode 2, and mode 3
 
 %% Reconstructing for plot
 % Expansion Coeffs plotted in matlab
@@ -167,7 +174,8 @@ end
 if out2
    for a = 1:n
       % rewriting
-      En = [points; EOFs(:, a)'];
+      En = [points; EOFs(:, a)']; % uses column vecs of V, == row vecs of v'
+      %En = [points; EOFs(a, :)]; % uses row vecs of V', not sure which is right
       z = NaN(28, 360);
       %lat = -89.5:-62.5;
       %lon = 0.5:359.5;
