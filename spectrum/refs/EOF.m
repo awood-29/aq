@@ -1,4 +1,4 @@
-function [pv] = EOF(group, ds, n, out1, out2, norm, dt)
+function [pv] = EOF(group, ds, n, out1, out2, ts, norm, dt)
 %% GRACE EOF
 % Description
 % Author: Andrew Wood
@@ -19,7 +19,6 @@ function [pv] = EOF(group, ds, n, out1, out2, norm, dt)
 
 % pv holds the percent variance explained by each eigenval
 
-% Heads up, .nc writing is a lil hardcoded
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Argument Processing
@@ -38,6 +37,10 @@ end
 
 if ~exist('out2', 'var')
   out2 = false; % default detrend
+end
+
+if ~exist('ts', 'var')
+  ts = 1; % default detrend
 end
 
 if nargin < 1
@@ -101,12 +104,6 @@ pv = pv*100;
 % ECs = U * EOFs; % expansion coeffs
 ECs = C * lambda; % from the .m,  actually the same
 vprime = EOFs';
-
-reconstruct = {};
-for a = 1:n
-   reconstruct{1} = ECs(:, 1:a) * vprime(1:a, :);
-end
-% reconstruct holds time series for mode 1, mode 2, and mode 3
 
 %% Reconstructing for plot
 % Expansion Coeffs plotted in matlab
@@ -172,9 +169,15 @@ end
 
 %% Exporting modes to .nc
 if out2
+   reconstruct = cell(3,1);
+   for a = 1:n
+      reconstruct{a} = ECs(:, a) * vprime(a, :);
+   end
+   % reconstruct holds time series for mode 1, mode 2, and mode 3
+
    for a = 1:n
       % rewriting
-      En = [points; EOFs(:, a)']; % uses column vecs of V, == row vecs of v'
+      En = [points; reconstruct{a}(ts, :)]; % uses column vecs of V, == row vecs of v'
       %En = [points; EOFs(a, :)]; % uses row vecs of V', not sure which is right
       z = NaN(28, 360);
       %lat = -89.5:-62.5;
@@ -186,7 +189,7 @@ if out2
       end
       z = z';
 
-      name2 = sprintf("%s/EOF%d.nc", outdir, a);
+      name2 = sprintf("%s/EOF%dts%d.nc", outdir, a, ts);
       nccreate(name2, 'lon', 'Dimensions', {'lon' 360});
       ncwriteatt(name2, 'lon', 'standard_name', 'longitude');
       ncwriteatt(name2, 'lon', 'long_name', 'longitude');
