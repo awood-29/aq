@@ -37,29 +37,29 @@ switch ds(d)
 % case 3 % JPL L2
         
 case 4 % CSR L3
-       tag1 = "CSR";
+       tag2 = "CSR";
        linecolor = 'r';
 
 case 5 % GFZ L3
-       tag1 = "GFZ";
+       tag2 = "GFZ";
        linecolor = 'g';
 
 case 6 % JPL L3
-       tag1 = "JPL";
+       tag2 = "JPL";
        linecolor = 'b';
 
 % case 7 % JPL Mascons
         
 case 8 % Cumulative CSR L3
-       tag1 = "cCSR";
+       tag2 = "cCSR";
        linecolor = 'r';
 
 case 9 % Cumulative GFZ L3
-       tag1 = "cGFZ";
+       tag2 = "cGFZ";
        linecolor = 'g';
 
 case 10 % Cumulative JPL L3
-       tag1 = "cJPL";
+       tag2 = "cJPL";
        linecolor = 'b';
 
 % case 11 % Cumulative JPL Mascons
@@ -68,8 +68,8 @@ end
 
 current = cd;
 datadir = fullfile(current, sprintf('../results/matvars/%s/%s', tag1, tag2));
-outdir = fullfile(current, '../results/plots/%s/%s', tag1, tag2);
-data = load(datadir);
+outdir = fullfile(current, sprintf('../results/plots/%s/%s', tag1, tag2));
+data = load(sprintf("%s/data.mat", datadir));
 data = data.data;
 
 for a = 1:length(lats) % loops through all provided lats

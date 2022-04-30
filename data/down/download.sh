@@ -15,7 +15,8 @@ export PATH="$(pwd)/urls:$(pwd)/../names:$PATH"
 
 url=$1
 name=$2
-path="$3/"
+#path="$3/"
+path="$(pwd)/../l3/2019_21/testCSR/"
 
 while read -r a <&5 && read -r b <&6; do
     curl -o "$path$b" -u awood29:CK6MJ@ODzsPFTeNG3Ck $a # downloads file from url, names

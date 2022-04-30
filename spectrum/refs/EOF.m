@@ -83,6 +83,9 @@ U = U * diag(1./norms);
 if dt
    warning('off', 'MATLAB:detrend:PolyNotUnique')
    U = detrend(U, 1, 'omitnan');
+else
+   warning('off', 'MATLAB:detrend:PolyNotUnique')
+   U = detrend(U, 0, 'omitnan');
 end
 
 %% SVD
@@ -113,6 +116,9 @@ set(0,'DefaultFigureWindowStyle','docked')
 
 for a = 1:n
    name = sprintf("e%d", a);
+   if ~dt
+      name = sprintf("e%dDToff", a);
+   end
    f = figure('NumberTitle', 'off', 'Name', name);
    tiledlayout(2,1) % sets up tile
    nexttile
@@ -190,6 +196,9 @@ if out2
       z = z';
 
       name2 = sprintf("%s/EOF%dts%d.nc", outdir, a, ts);
+         if ~dt
+            name2 = sprintf("%s/EOF%dts%dDToff.nc", outdir, a, ts);
+         end
       nccreate(name2, 'lon', 'Dimensions', {'lon' 360});
       ncwriteatt(name2, 'lon', 'standard_name', 'longitude');
       ncwriteatt(name2, 'lon', 'long_name', 'longitude');
